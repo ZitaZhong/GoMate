@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main, feat/v2-detailed-design]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+
+      - name: Sync dependencies (dev)
+        run: uv sync --extra dev
+
+      - name: Start isolated Postgres(PostGIS+pgvector) + Redis
+        run: docker compose up -d --quiet-pull
+
+      - name: Wait for services healthy
+        run: |
+          for i in $(seq 1 30); do
+            if docker compose ps | grep -c "healthy" | grep -q "2"; then break; fi
+            sleep 2
+          done
+          docker compose ps
+
+      - name: Run migrations
+        run: uv run alembic upgrade head
+
+      - name: Lint (ruff)
+        run: uv run ruff check src tests
+
+      - name: Tests (含三条硬 KPI 门禁)
+        env:
+          WTG_DB_HOST: 127.0.0.1
+          WTG_DB_PORT: "5433"
+          WTG_REDIS_HOST: 127.0.0.1
+          WTG_REDIS_PORT: "6380"
+        run: uv run pytest -q
+
+      - name: Migration regression (downgrade -1 then upgrade)
+        run: |
+          uv run alembic downgrade -1
+          uv run alembic upgrade head

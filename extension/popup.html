@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    body { font-family: -apple-system, "Microsoft YaHei", sans-serif; width: 320px; padding: 12px; }
+    h2 { font-size: 14px; margin: 0 0 8px; }
+    .field { margin: 6px 0; font-size: 13px; }
+    .field input { width: 100%; padding: 5px; box-sizing: border-box; }
+    .btn { background: #1a202c; color: #fff; border: 0; padding: 8px 12px; border-radius: 6px; cursor: pointer; width: 100%; margin-top: 8px; }
+    .note { font-size: 11px; color: #888; margin-top: 6px; }
+    #status { font-size: 12px; margin-top: 6px; }
+  </style>
+</head>
+<body>
+  <h2>回填到「周末去哪儿」</h2>
+  <div class="field">类型：<select id="kind"><option value="train">火车</option><option value="flight">航班</option><option value="hotel">酒店</option></select></div>
+  <div class="field">编号/名称：<input id="f1" placeholder="车次/航班号/酒店名" /></div>
+  <div class="field">日期：<input id="f2" placeholder="2026-08-09" /></div>
+  <div class="field">Plan ID：<input id="planId" placeholder="数字" /></div>
+  <button class="btn" id="submit">确认并提交</button>
+  <div id="status"></div>
+  <div class="note">仅本地解析 + 你手动确认后才提交。不自动登录、不模拟购票。</div>
+  <script src="popup.js"></script>
+</body>
+</html>

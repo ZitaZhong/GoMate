@@ -1,0 +1,158 @@
+# 「周末去哪儿」城市档案 + 来源注册 种子数据（DD-01 §10.2）
+# 运营维护：v0.1 先做 15~20 城（上海优先）。经纬度为城市中心/枢纽近似值，运营可校准。
+# 导入：uv run python -m wheretogo.seeds.loader
+cities:
+  - city_code: "310000"
+    name: 上海
+    center: {lng: 121.4737, lat: 31.2304}
+    stations:
+      - {name: 上海虹桥站, type: rail, location: {lng: 121.3200, lat: 31.1943}, access_note: 地铁2/10/17号线直达}
+      - {name: 上海站, type: rail, location: {lng: 121.4553, lat: 31.2497}, access_note: 地铁1/3/4号线}
+      - {name: 浦东国际机场, type: air, location: {lng: 121.8083, lat: 31.1443}, access_note: 地铁2号线/磁悬浮}
+    lodging_areas:
+      - {name: 人民广场, center: {lng: 121.4756, lat: 31.2286}, dining_density: high, night_transit_risk: low, eta_notes: 地铁枢纽核心}
+      - {name: 徐家汇, center: {lng: 121.4370, lat: 31.1950}, dining_density: high, night_transit_risk: low, eta_notes: 商圈成熟}
+    hubs: [南京路, 徐家汇, 外滩, 陆家嘴]
+    transit_notes: {night_risk: low, note: 地铁网络密集，末班约22:30-23:00}
+    weekend_tags: [展览, 演出, 城市漫步, 美食]
+    seasonal_risk: {summer: 高温多雨, winter: 湿冷}
+  - city_code: "320500"
+    name: 苏州
+    center: {lng: 120.5853, lat: 31.2989}
+    stations:
+      - {name: 苏州北站, type: rail, location: {lng: 120.6416, lat: 31.4267}, access_note: 京沪高铁/地铁2号线}
+      - {name: 苏州站, type: rail, location: {lng: 120.6199, lat: 31.3300}, access_note: 地铁2/4号线}
+    lodging_areas:
+      - {name: 观前街, center: {lng: 120.6250, lat: 31.3120}, dining_density: high, night_transit_risk: low, eta_notes: 古城中心}
+    hubs: [平江路, 金鸡湖, 山塘街]
+    weekend_tags: [园林, 古镇, 展览]
+  - city_code: "330100"
+    name: 杭州
+    center: {lng: 120.1551, lat: 30.2741}
+    stations:
+      - {name: 杭州东站, type: rail, location: {lng: 120.2127, lat: 30.2907}, access_note: 地铁1/4号线}
+      - {name: 萧山国际机场, type: air, location: {lng: 120.4347, lat: 30.2295}, access_note: 地铁7号线/机场大巴}
+    lodging_areas:
+      - {name: 西湖湖滨, center: {lng: 120.1550, lat: 30.2530}, dining_density: high, night_transit_risk: low, eta_notes: 近西湖景区}
+    hubs: [西湖, 湖滨, 武林广场]
+    weekend_tags: [自然, 城市漫步, 演出]
+  - city_code: "320100"
+    name: 南京
+    center: {lng: 118.7969, lat: 32.0603}
+    stations:
+      - {name: 南京南站, type: rail, location: {lng: 118.7972, lat: 31.9689}, access_note: 地铁1/3/S1号线}
+    lodging_areas:
+      - {name: 新街口, center: {lng: 118.7800, lat: 32.0420}, dining_density: high, night_transit_risk: low, eta_notes: 城市核心商圈}
+    hubs: [夫子庙, 新街口, 玄武湖]
+    weekend_tags: [历史, 展览, 城市漫步]
+  - city_code: "110000"
+    name: 北京
+    center: {lng: 116.4074, lat: 39.9042}
+    stations:
+      - {name: 北京南站, type: rail, location: {lng: 116.3786, lat: 39.8654}, access_note: 地铁4/14号线}
+      - {name: 首都国际机场, type: air, location: {lng: 116.6031, lat: 40.0799}, access_note: 机场快轨}
+    lodging_areas:
+      - {name: 王府井, center: {lng: 116.4109, lat: 39.9097}, dining_density: high, night_transit_risk: low, eta_notes: 市中心}
+    hubs: [故宫, 三里屯, 国贸]
+    weekend_tags: [历史, 展览, 演出]
+  - city_code: "440100"
+    name: 广州
+    center: {lng: 113.2644, lat: 23.1291}
+    stations:
+      - {name: 广州南站, type: rail, location: {lng: 113.2680, lat: 22.9910}, access_note: 地铁2/7/22号线}
+    lodging_areas:
+      - {name: 天河城, center: {lng: 113.3245, lat: 23.1360}, dining_density: high, night_transit_risk: low, eta_notes: 商圈核心}
+    hubs: [珠江新城, 北京路, 沙面]
+    weekend_tags: [美食, 城市漫步]
+  - city_code: "440300"
+    name: 深圳
+    center: {lng: 114.0579, lat: 22.5431}
+    stations:
+      - {name: 深圳北站, type: rail, location: {lng: 114.0288, lat: 22.6100}, access_note: 地铁4/5/6号线}
+      - {name: 宝安国际机场, type: air, location: {lng: 113.8109, lat: 22.6393}, access_note: 地铁11号线}
+    lodging_areas:
+      - {name: 福田, center: {lng: 114.0550, lat: 22.5220}, dining_density: high, night_transit_risk: low, eta_notes: 中心商务区}
+    hubs: [欢乐海岸, 华侨城, 福田]
+    weekend_tags: [展览, 亲子, 城市漫步]
+  - city_code: "510100"
+    name: 成都
+    center: {lng: 104.0665, lat: 30.5723}
+    stations:
+      - {name: 成都东站, type: rail, location: {lng: 104.1420, lat: 30.6300}, access_note: 地铁2/7号线}
+    lodging_areas:
+      - {name: 春熙路, center: {lng: 104.0810, lat: 30.6510}, dining_density: high, night_transit_risk: low, eta_notes: 商圈核心}
+    hubs: [宽窄巷子, 太古里, 锦里]
+    weekend_tags: [美食, 城市漫步, 演出]
+  - city_code: "420100"
+    name: 武汉
+    center: {lng: 114.3055, lat: 30.5928}
+    stations:
+      - {name: 武汉站, type: rail, location: {lng: 114.4230, lat: 30.6070}, access_note: 地铁4号线}
+    lodging_areas:
+      - {name: 江汉路, center: {lng: 114.2930, lat: 30.5820}, dining_density: high, night_transit_risk: medium, eta_notes: 步行街商圈}
+    hubs: [黄鹤楼, 东湖, 江汉路]
+    weekend_tags: [自然, 历史, 美食]
+  - city_code: "610100"
+    name: 西安
+    center: {lng: 108.9398, lat: 34.3416}
+    stations:
+      - {name: 西安北站, type: rail, location: {lng: 108.9530, lat: 34.3760}, access_note: 地铁2/4号线}
+    lodging_areas:
+      - {name: 钟楼, center: {lng: 108.9420, lat: 34.2610}, dining_density: high, night_transit_risk: low, eta_notes: 古城中心}
+    hubs: [大雁塔, 回民街, 钟鼓楼]
+    weekend_tags: [历史, 美食, 演出]
+  - city_code: "430100"
+    name: 长沙
+    center: {lng: 112.9388, lat: 28.2282}
+    stations:
+      - {name: 长沙南站, type: rail, location: {lng: 113.0600, lat: 28.1500}, access_note: 地铁2/4号线}
+    lodging_areas:
+      - {name: 五一广场, center: {lng: 112.9760, lat: 28.1960}, dining_density: high, night_transit_risk: low, eta_notes: 夜经济核心}
+    hubs: [橘子洲, 太平街, 五一广场]
+    weekend_tags: [美食, 演出, 城市漫步]
+  - city_code: "500000"
+    name: 重庆
+    center: {lng: 106.5516, lat: 29.5630}
+    stations:
+      - {name: 重庆北站, type: rail, location: {lng: 106.5510, lat: 29.6100}, access_note: 地铁3/10号线}
+    lodging_areas:
+      - {name: 解放碑, center: {lng: 106.5770, lat: 29.5580}, dining_density: high, night_transit_risk: medium, eta_notes: 立体交通复杂}
+    hubs: [洪崖洞, 解放碑, 长江索道]
+    weekend_tags: [美食, 城市漫步, 夜景]
+  - city_code: "120000"
+    name: 天津
+    center: {lng: 117.1902, lat: 39.1256}
+    stations:
+      - {name: 天津站, type: rail, location: {lng: 117.2110, lat: 39.1360}, access_note: 地铁2/3/9号线}
+    lodging_areas:
+      - {name: 滨江道, center: {lng: 117.2050, lat: 39.1300}, dining_density: high, night_transit_risk: low, eta_notes: 商圈核心}
+    hubs: [意式风情街, 五大道, 古文化街]
+    weekend_tags: [历史, 城市漫步, 美食]
+  - city_code: "370200"
+    name: 青岛
+    center: {lng: 120.3826, lat: 36.0671}
+    stations:
+      - {name: 青岛站, type: rail, location: {lng: 120.3180, lat: 36.0640}, access_note: 地铁1/3号线}
+    lodging_areas:
+      - {name: 台东, center: {lng: 120.3600, lat: 36.0700}, dining_density: high, night_transit_risk: low, eta_notes: 步行街商圈}
+    hubs: [栈桥, 八大关, 奥帆中心]
+    weekend_tags: [自然, 美食, 城市漫步]
+  - city_code: "350200"
+    name: 厦门
+    center: {lng: 118.0894, lat: 24.4798}
+    stations:
+      - {name: 厦门北站, type: rail, location: {lng: 118.1030, lat: 24.6070}, access_note: 地铁1号线}
+    lodging_areas:
+      - {name: 中山路, center: {lng: 118.0820, lat: 24.4560}, dining_density: high, night_transit_risk: low, eta_notes: 近轮渡与老城}
+    hubs: [鼓浪屿, 中山路, 环岛路]
+    weekend_tags: [自然, 城市漫步, 美食]
+
+# 来源注册（每城若干高价值官方源；trust_level 1~7 对应可信度分级）
+sources:
+  - {name: 上海博物馆, city_code: "310000", source_type: official_venue, entry_url: "https://www.shanghaimuseum.net", parser_kind: static, trust_level: 7}
+  - {name: 上海大剧院, city_code: "310000", source_type: official_venue, entry_url: "https://www.shgtheatre.com", parser_kind: static, trust_level: 7}
+  - {name: 中华艺术宫, city_code: "310000", source_type: official_venue, entry_url: "https://www.artmuseumonline.org", parser_kind: static, trust_level: 7}
+  - {name: 苏州博物馆, city_code: "320500", source_type: official_venue, entry_url: "https://www.szmuseum.com", parser_kind: static, trust_level: 7}
+  - {name: 浙江省博物馆, city_code: "330100", source_type: official_venue, entry_url: "https://www.zhejiangmuseum.com", parser_kind: static, trust_level: 7}
+  - {name: 南京博物院, city_code: "320100", source_type: official_venue, entry_url: "https://www.njmuseum.com", parser_kind: static, trust_level: 7}
+  - {name: 国家博物馆, city_code: "110000", source_type: official_venue, entry_url: "https://www.chnmuseum.cn", parser_kind: static, trust_level: 7}

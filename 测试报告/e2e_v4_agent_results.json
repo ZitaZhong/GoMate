@@ -1,0 +1,57 @@
+[
+  {
+    "name": "A1 turns 建 plan + 响应契约",
+    "result": "PASS",
+    "detail": "HTTP 202 plan=371 status=running"
+  },
+  {
+    "name": "A1 202=RUNNING 时带真实 run",
+    "result": "PASS",
+    "detail": "run=4999df22-223a-4ef9-bb8b-f0c7cac311fb type=research"
+  },
+  {
+    "name": "A2 Idempotency-Key 重发同 turn/run",
+    "result": "PASS",
+    "detail": "idempotent=True turn=b684dabb-1690-4323-abae-09eac15cf771"
+  },
+  {
+    "name": "A3 事件流单调递增且见 final",
+    "result": "PASS",
+    "detail": "events=21 last_seq=21"
+  },
+  {
+    "name": "A3 after=N 续传不重复不丢",
+    "result": "PASS",
+    "detail": "after=11 resumed=10"
+  },
+  {
+    "name": "A4 workspace：会话/当前方案/无悬挂 run",
+    "result": "PASS",
+    "detail": "conv=3 turn=answered plan=有"
+  },
+  {
+    "name": "A4 turn 终态不静默（visible_reply 非空）",
+    "result": "PASS",
+    "detail": "为两位从上海出发、预算人均800元的周末杭州游，我规划了以“运河非遗与老街漫步”及“经典市井与沉浸大展”为核心的两日行程。博物馆与历史街区大多免费开放，预算可充"
+  },
+  {
+    "name": "A5 澄清结构（如有）字段完整",
+    "result": "PASS",
+    "detail": "open=1"
+  },
+  {
+    "name": "A6 cancel 后 run 收敛（不悬挂）",
+    "result": "PASS",
+    "detail": "cancel HTTP 200"
+  },
+  {
+    "name": "A7 design_itinerary：路线卡或 run，不留白",
+    "result": "PASS",
+    "detail": "route_plan=有 run=无 status=answered"
+  },
+  {
+    "name": "A8 硬 KPI 全零（silent/promised/hidden）",
+    "result": "PASS",
+    "detail": "{\"turn_total\": 69, \"turn_silent_terminal_total\": 0, \"promised_without_run_total\": 0, \"hidden_clarification_total\": 0}"
+  }
+]

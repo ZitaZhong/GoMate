@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+.ruff_cache/
+
+# 环境
+.env
+.env.*
+!.env.example
+
+# 数据/模型
+models_cache/
+*.log
+
+# 调试临时文件
+_dbg*.txt
+.playwright-cli/
+output/

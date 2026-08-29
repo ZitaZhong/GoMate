@@ -1,0 +1,50 @@
+# 「周末去哪儿」本地开发基础设施（隔离实例）
+#
+# 重要：本项目严禁使用本地已有的 PostgreSQL 生产实例。
+# 这里的所有服务都使用非默认端口 + 独立数据卷，与任何现有服务隔离。
+#   - PostgreSQL(PostGIS+pgvector)  宿主端口 5433 -> 容器 5432
+#   - Redis 7                        宿主端口 6380 -> 容器 6379
+services:
+  postgres:
+    build:
+      context: ./docker/postgres
+    container_name: wheretogo-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: wheretogo
+      POSTGRES_PASSWORD: wheretogo_dev_pwd
+      POSTGRES_DB: wheretogo
+      # 时区统一 UTC（DD-01：TIMESTAMPTZ 以 UTC 存储）
+      TZ: UTC
+      PGTZ: UTC
+    ports:
+      - "5433:5432"
+    volumes:
+      - wheretogo_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wheretogo -d wheretogo"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: wheretogo-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6380:6379"
+    volumes:
+      - wheretogo_redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  # 独立命名卷，避免与本地任何现有 PG/Redis 数据冲突
+  wheretogo_pgdata:
+    name: wheretogo_pgdata
+  wheretogo_redisdata:
+    name: wheretogo_redisdata

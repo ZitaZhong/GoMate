@@ -1,0 +1,155 @@
+# 「周末去哪儿」生产环境 Docker Compose
+# 
+# 使用方法：
+#   1. 复制 .env.production 为 .env 并填入实际配置
+#   2. 修改下方 web 服务的 NEXT_PUBLIC_API_BASE 为服务器实际 IP
+#   3. 执行: docker compose -f docker-compose.prod.yml up -d
+#
+# 服务说明：
+#   - postgres: PostgreSQL 16 + PostGIS + pgvector（端口 5433）
+#   - redis:    Redis 7（端口 6380）
+#   - bff:      FastAPI 后端（端口 8000）
+#   - worker:   Agent 后台任务处理器
+#   - web:      Next.js 前端（端口 3000）
+
+version: '3.8'
+
+services:
+  # ==================== PostgreSQL 数据库 ====================
+  postgres:
+    build:
+      context: ./docker/postgres
+    container_name: wheretogo-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: wheretogo
+      POSTGRES_PASSWORD: ${WTG_DB_PASSWORD:-wheretogo_prod_pwd}
+      POSTGRES_DB: wheretogo
+      TZ: UTC
+      PGTZ: UTC
+    volumes:
+      - wheretogo_pgdata:/var/lib/postgresql/data
+    networks:
+      - wheretogo-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wheretogo -d wheretogo"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ==================== Redis 缓存 ====================
+  redis:
+    image: redis:7-alpine
+    container_name: wheretogo-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - wheretogo_redisdata:/data
+    networks:
+      - wheretogo-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+  # ==================== BFF 后端 API ====================
+  bff:
+    build:
+      context: .
+      dockerfile: docker/bff/Dockerfile
+    container_name: wheretogo-bff
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      # 覆盖为 Docker 内网地址
+      WTG_DB_HOST: postgres
+      WTG_DB_PORT: 5432
+      WTG_REDIS_HOST: redis
+      WTG_REDIS_PORT: 6379
+      # 生产环境标识
+      WTG_APP_ENV: production
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - wheretogo-net
+    # 资源限制（可选）
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+
+  # ==================== Agent Worker 后台任务 ====================
+  worker:
+    build:
+      context: .
+      dockerfile: docker/bff/Dockerfile
+    container_name: wheretogo-worker
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      WTG_DB_HOST: postgres
+      WTG_DB_PORT: 5432
+      WTG_REDIS_HOST: redis
+      WTG_REDIS_PORT: 6379
+      WTG_APP_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - wheretogo-net
+    command: uv run python -m wheretogo.agent.worker
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+
+  # ==================== Next.js 前端 ====================
+  web:
+    build:
+      context: ./web-v2
+      dockerfile: Dockerfile
+    container_name: wheretogo-web
+    restart: unless-stopped
+    environment:
+      # 重要：部署前修改为服务器实际 IP 或域名
+      # 例如: http://192.168.1.100:8000 或 http://api.yourdomain.com
+      NEXT_PUBLIC_API_BASE: ${NEXT_PUBLIC_API_BASE:-http://localhost:8000}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - bff
+    networks:
+      - wheretogo-net
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
+# ==================== 网络配置 ====================
+networks:
+  wheretogo-net:
+    driver: bridge
+    name: wheretogo-net
+
+# ==================== 数据卷 ====================
+volumes:
+  wheretogo_pgdata:
+    name: wheretogo_pgdata
+  wheretogo_redisdata:
+    name: wheretogo_redisdata

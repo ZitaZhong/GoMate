@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>周末去哪儿 · AI 旅行助理</title>
+  <style>
+    :root {
+      /* 证据六态配色（增补 B：estimated/unknown 必须与 confirmed 一眼可辨）*/
+      --confirmed: #1f9d55; --observed: #2b6cb0; --estimated: #dd9b0b;
+      --unknown: #718096; --expired: #e53e3e; --bg: #f7f8fa; --card: #fff; --line: #e2e8f0;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+           background: var(--bg); color: #1a202c; }
+    header { background: #1a202c; color: #fff; padding: 14px 20px; }
+    header h1 { margin: 0; font-size: 18px; }
+    header small { color: #a0aec0; }
+    main { max-width: 920px; margin: 0 auto; padding: 18px; }
+    .form { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
+    .form label { font-size: 13px; color: #4a5568; display: block; margin: 8px 0 4px; }
+    .form input, .form select { width: 100%; padding: 8px; border: 1px solid var(--line); border-radius: 6px; }
+    .tags { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tags label { display: inline-flex; align-items: center; gap: 4px; margin: 0; font-size: 13px;
+                  background: #edf2f7; padding: 4px 10px; border-radius: 999px; cursor: pointer; }
+    .btn { margin-top: 12px; background: #1a202c; color: #fff; border: 0; padding: 10px 18px;
+           border-radius: 8px; cursor: pointer; font-size: 14px; }
+    .btn:disabled { opacity: .5; cursor: default; }
+    .btn.secondary { background: #4a5568; }
+    section.block { margin-top: 18px; }
+    section.block h2 { font-size: 15px; color: #2d3748; border-left: 4px solid #1a202c; padding-left: 8px; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+            padding: 12px 14px; margin: 10px 0; }
+    .card .title { font-weight: 600; }
+    .card .meta { color: #718096; font-size: 13px; margin-top: 4px; }
+    .card a { color: #2b6cb0; text-decoration: none; }
+    /* 证据角标 —— 六态视觉区分 */
+    .badge { display: inline-block; font-size: 12px; padding: 2px 8px; border-radius: 999px;
+             color: #fff; margin-left: 6px; vertical-align: middle; }
+    .badge.confirmed_by_user, .badge.official_source_confirmed { background: var(--confirmed); }
+    .badge.public_source_observed { background: var(--observed); }
+    .badge.estimated { background: var(--estimated); }
+    .badge.unknown { background: var(--unknown); }
+    .badge.expired { background: var(--expired); }
+    .note { font-size: 12px; color: #a0aec0; margin-top: 3px; }
+    .pending { border: 1px dashed var(--estimated); background: #fffbea; }
+    .log { font-size: 12px; color: #718096; }
+    .warn { color: var(--estimated); font-size: 13px; }
+    .clarify-card { border: 1px solid var(--estimated); background: #fffbea; border-radius: 8px;
+                    padding: 10px 12px; margin: 8px 0; font-size: 13px; }
+    .clarify-card .q { font-weight: 600; }
+    .clarify-card.nonblocking { border-style: dashed; background: #f7fafc; border-color: var(--line); }
+    #runStatus { display: none; margin-top: 8px; border: 1px solid var(--line); background: var(--card);
+                 border-radius: 8px; padding: 8px 12px; font-size: 13px; color: #4a5568; }
+    #runStatus .cancel { float: right; background: none; border: 1px solid var(--line);
+                         border-radius: 6px; padding: 2px 10px; cursor: pointer; color: #718096; }
+    .legend { font-size: 12px; color: #4a5568; margin-top: 6px; }
+    .legend .badge { color: #fff; }
+    .chat-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .chat-toolbar h2 { flex: 1; }
+    .chat-toolbar .btn { margin: 0; padding: 7px 12px; background: #4a5568; }
+    #chatLog { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+               padding: 14px; min-height: 300px; max-height: 58vh; overflow: auto;
+               line-height: 1.55; }
+    #chatLog > div { margin: 6px 0; }
+    details.advanced { margin-top: 18px; }
+    details.advanced summary { cursor: pointer; font-weight: 600; color: #4a5568; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>周末去哪儿 <small>· 你的 AI 旅行助理</small></h1>
+  </header>
+  <main>
+    <section class="block chat">
+      <div class="chat-toolbar">
+        <h2>旅行助理</h2>
+        <button class="btn secondary" id="newChat">新对话</button>
+      </div>
+      <div id="chatLog"></div>
+      <div id="runStatus"></div>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <input id="chatInput" placeholder="直接告诉我你想去哪、怎么玩，或继续修改上一版行程…" style="flex:1;padding:8px;border:1px solid var(--line);border-radius:6px;">
+        <button class="btn" id="chatSend">发送</button>
+      </div>
+      <div class="note">同一对话会持续保留旅行目标、偏好、研究证据和当前行程；需要新资料时旅行助理会自动调研。</div>
+    </section>
+    <details class="form advanced">
+      <summary>高级规划设置（可选）</summary>
+      <label>目标城市</label>
+      <select id="city">
+        <option value="310000">上海</option>
+        <option value="320500">苏州</option>
+        <option value="330100">杭州</option>
+        <option value="320100">南京</option>
+        <option value="120000">天津（无样例活动，演示降级）</option>
+      </select>
+      <label>体验要求（开放自然语言，不限类别）</label>
+      <input id="requirements" value="" placeholder="例如：适合两个人慢慢逛的自然景观，不要室内展馆" />
+      <label>研究目标（可选；留空时使用上面的原话）</label>
+      <input id="query" value="" placeholder="例如：为杭州周末行程寻找有来源支持的具体去处" />
+      <label>忌讳（餐饮排除，逗号分隔）</label>
+      <input id="dietary" value="辣" />
+      <button class="btn" id="go">开始规划</button>
+      <div class="legend">
+        证据状态：
+        <span class="badge official_source_confirmed">官方确认</span>
+        <span class="badge public_source_observed">公开来源</span>
+        <span class="badge estimated">估算</span>
+        <span class="badge unknown">待确认</span>
+        <span class="badge expired">已过期</span>
+      </div>
+    </details>
+
+    <div id="out"></div>
+  </main>
+
+  <script>
+    const $ = (s) => document.querySelector(s);
+    const out = $("#out");
+    let planId = null;
+    let autoPlanned = false;
+    let planningActive = false;
+    let planFinished = false;
+    try { planId = sessionStorage.getItem("wheretogo.planId"); } catch (e) {}
+
+    function rememberPlan(id) {
+      planId = id ? String(id) : null;
+      try {
+        if (planId) sessionStorage.setItem("wheretogo.planId", planId);
+        else sessionStorage.removeItem("wheretogo.planId");
+      } catch (e) {}
+    }
+
+    const LABELS = {
+      confirmed_by_user: "已确认", official_source_confirmed: "官方确认",
+      public_source_observed: "公开来源", estimated: "估算", unknown: "待确认", expired: "已过期",
+    };
+    function badge(status) {
+      const s = Object.prototype.hasOwnProperty.call(LABELS, status) ? status : "unknown";
+      return `<span class="badge ${s}">${escapeHtml(LABELS[s])}</span>`;
+    }
+    function evNote(ev) {
+      return ev && ev.note
+        ? `<div class="note">来源：${escapeHtml(ev.source_type || "?")}　${escapeHtml(ev.note)}</div>`
+        : "";
+    }
+    function safeUrl(value) {
+      if (!value) return "";
+      try {
+        const raw = String(value).trim();
+        // 抓取源偶尔返回脱敏/截断占位符；它不是可访问证据，不应伪装成链接。
+        if (/[\u0000-\u001F\u007F]/.test(raw) || raw.includes("***")) return "";
+        if (!/^https?:\/\//i.test(raw)) return "";
+        const u = new URL(raw);
+        return (u.protocol === "http:" || u.protocol === "https:") ? u.href : "";
+      } catch (e) { return ""; }
+    }
+    function setPlanningActive(active) {
+      // v4 §11.2：对话输入框不在研究期间锁死；此开关只管旧版高级表单/回填按钮。
+      planningActive = Boolean(active);
+      $("#go").disabled = planningActive;
+      for (const selector of ["#importBtn", "#resumeBtn", "#skipBtn"]) {
+        const button = $(selector);
+        if (button) button.disabled = planningActive || planFinished;
+      }
+    }
+    let submitting = false;
+    function setSubmitting(active) {
+      submitting = Boolean(active);
+      $("#chatSend").disabled = submitting;
+    }
+    function shYear(iso) {
+      if (!iso) return "";
+      try {
+        return new Intl.DateTimeFormat("en", {
+          timeZone: "Asia/Shanghai", year: "numeric",
+        }).format(new Date(iso));
+      } catch (e) { return ""; }
+    }
+    function shTime(iso, includeYear = false) {  // ISO → Asia/Shanghai 本地展示；00:00时只显示日期不显示时间
+      if (!iso) return "";
+      try {
+        const d = new Date(iso);
+        if (Number.isNaN(d.getTime())) return "";
+        const opts = {timeZone: "Asia/Shanghai", month: "2-digit", day: "2-digit"};
+        if (includeYear) opts.year = "numeric";
+        // 只有真正有具体时间时才显示时分（避免 00:00 误导）
+        const h = d.getUTCHours(), m = d.getUTCMinutes();
+        // 转上海时区检查
+        const sh = new Date(d.toLocaleString("en-US", {timeZone: "Asia/Shanghai"}));
+        if (sh.getHours() !== 0 || sh.getMinutes() !== 0) {
+          opts.hour = "2-digit"; opts.minute = "2-digit";
+        }
+        return d.toLocaleString("zh-CN", opts);
+      } catch (e) { return String(iso).slice(0, 10); }
+    }
+    function block(id, title) {
+      let b = $("#" + id);
+      if (!b) {
+        b = document.createElement("section");
+        b.className = "block"; b.id = id;
+        b.innerHTML = `<h2>${title}</h2><div class="body"></div>`;
+        out.appendChild(b);
+      } else if (title) {
+        b.querySelector("h2").textContent = title;
+      }
+      return b.querySelector(".body");
+    }
+
+    function renderActivities(list, researchOutcome) {
+      const retained = researchOutcome === "no_better_alternatives";
+      const reranked = researchOutcome === "reranked";
+      const partial = researchOutcome === "partial_unverified";
+      const hasOpenCandidates = list.some((a) => a.candidate_type === "open_candidate");
+      const title = retained
+        ? "上一轮保留方案（本轮未找到不重复且更匹配的可信活动）"
+        : reranked
+          ? "上一轮候选（已按新增偏好重新排序并标注匹配信号）"
+          : partial
+            ? "行程候选（已保留新研究证据，部分语义或营业信息待复核）"
+          : hasOpenCandidates
+            ? "去处候选（开放域研究 + 来源证据 + 语义复核）"
+            : "活动候选（混合检索 + 个性化重排，硬过滤仅官方/公开来源）";
+      const body = block("acts", title);
+      body.dataset.count = String(list.length);
+      if (!list.length) {
+        body.innerHTML = `<div class="card pending" data-empty="activities">
+          <div class="title">本轮没有找到新的可信候选</div>
+          <div class="meta">已排除上一轮展示项；可换一个偏好方向或粘贴官方来源链接继续。</div>
+        </div>`;
+        return;
+      }
+      body.innerHTML = list.map((a) => {
+        const srcUrl = safeUrl(a.evidence && a.evidence.source_url);
+        const bookingUrl = safeUrl(a.booking_url);
+        const spansYears = Boolean(
+          a.start_at && a.end_at && shYear(a.start_at) !== shYear(a.end_at)
+        );
+        const vs = a.verification_status;
+        const semanticStatus = (a.semantic_evaluation || {}).status;
+        const trustNote = vs === 'official_source_confirmed' ? '' : '（公开来源，建议核实）';
+        const semanticNote = semanticStatus === "unknown"
+          ? `<div class="note" data-semantic-status="unknown">语义匹配状态：待复核；候选来源已保留，但尚未冒充已确认匹配。</div>`
+          : "";
+        const disputeNote = (a.evidence && a.evidence.note && a.evidence.note.includes('争议'))
+          ? `<div class="note" style="color:#c00">⚠️ ${escapeHtml(a.evidence.note)}</div>` : '';
+        const score = Number(a.rerank_score);
+        const preferenceSignals = Array.isArray(a.preference_match) ? a.preference_match : [];
+        const preferenceNote = preferenceSignals.length
+          ? `<div class="note" data-preference-match="true">偏好匹配信号：${preferenceSignals.map(escapeHtml).join("、")}
+              （${escapeHtml(a.preference_match_basis || "仅据公开文本匹配，不代表官方人群声明")}）</div>`
+          : "";
+        const startText = shTime(a.start_at, spansYears);
+        const endText = shTime(a.end_at, spansYears);
+        const availabilityText = startText
+          ? `${startText}${endText ? " ~ " + endText : ""}`
+          : a.availability_mode === "always"
+            ? "常设去处 · 开放时间建议核实"
+            : a.availability_mode === "recurring"
+              ? "周期开放 · 当日时段建议核实"
+              : "开放信息待核实";
+        return `
+        <div class="card">
+          <div class="title">${escapeHtml(a.title || "")} ${badge(vs)}</div>
+          <div class="meta">🕒 ${escapeHtml(availabilityText)} ${trustNote}</div>
+          <div class="meta">${escapeHtml(a.venue || "")}\u3000${escapeHtml(a.category || "")}\u3000${escapeHtml(a.price_text || "")}
+            ${bookingUrl ? `\u3000<a href="${escapeHtml(bookingUrl)}" target="_blank" rel="noopener noreferrer">官方购票 ↗</a>` : ""}
+            ${srcUrl ? `\u3000<a href="${escapeHtml(srcUrl)}" target="_blank" rel="noopener noreferrer">来源页面 ↗</a>` : ""}</div>
+          ${disputeNote}
+          ${semanticNote}
+          ${preferenceNote}
+          <div class="note">相关度重排分：${Number.isFinite(score) ? score.toFixed(3) : "0.000"}</div>
+          ${evNote(a.evidence)}
+        </div>`;
+      }).join("");
+    }
+    function renderItineraryDraft(list) {
+      if (!Array.isArray(list) || !list.length) return;
+      const body = block("itineraryDraft", "对话驱动的行程草案");
+      body.innerHTML = list.map((item) => `
+        <div class="card">
+          <div class="title">${escapeHtml(item.day || "周末")} · ${escapeHtml(item.time_window || "待确认")}</div>
+          <div class="meta">${escapeHtml(item.candidate_title || "")}</div>
+          <div class="note">${escapeHtml(item.reason || "")}</div>
+        </div>`).join("");
+    }
+    function renderCities(list) {
+      const body = block("cities", "候选城市（活动 × 可达性，PRD §04 三城对比）");
+      body.innerHTML = list.map((c) => {
+        const t = c.recommended_transport || c.door_to_door || {};
+        const acts = c.driven_by_activities || {};
+        return `<div class="card"><div class="title">${escapeHtml(c.name || "")} ${badge((c.evidence||{}).verification_status)}</div>
+          <div class="meta">${escapeHtml(c.reason || "")}</div>
+          <div class="note">活动：${escapeHtml(acts.value ?? "?")}场　门到门：${escapeHtml(t.value || "-")} ${badge((t.evidence||{}).verification_status)}</div>
+        </div>`;
+      }).join("");
+    }
+    function renderTransport(t) {
+      const body = block("transport", "交通策略（不编造票价/余票，估算标注待确认）");
+      const cand = (t.candidates || [])[0] || {};
+      const d2d = cand.door_to_door || {};
+      const entry = cand.official_entry || {};
+      const entryUrl = safeUrl(entry.url);
+      const presale = (t.presale || []).map((p) =>
+        `<div class="note">⏰ 起售：${escapeHtml(p.route || "")} ${p.open_at ? shTime(p.open_at) : ""}（${escapeHtml(p.disclaimer || "以 12306 为准")}）</div>`
+      ).join("");
+      body.innerHTML = `<div class="card">
+        <div class="title">${escapeHtml(t.origin || "")} → ${escapeHtml(cand.city || cand.city_code || "")} · ${escapeHtml(cand.recommended_mode || "-")} ${badge("estimated")}</div>
+        <div class="meta">${escapeHtml(cand.reason || t.disclaimer || "")}</div>
+        ${d2d.rail ? `<div class="note">高铁门到门约 ${escapeHtml(d2d.rail.total_min || "?")}分钟（有效游玩 ${escapeHtml(d2d.rail.effective_play_min || 0)}min）</div>` : ""}
+        ${d2d.air ? `<div class="note">航班门到门约 ${escapeHtml(d2d.air.total_min || "?")}分钟（有效游玩 ${escapeHtml(d2d.air.effective_play_min || 0)}min）</div>` : ""}
+        ${entryUrl ? `<div class="note">官方入口：<a href="${escapeHtml(entryUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(entryUrl)}</a></div>` : ""}
+        ${presale}
+        <div class="note">票价/余票以官方平台为准</div>
+      </div>`;
+    }
+    function renderTimeline(list) {
+      const body = block("timeline", "时间线（确认版，Asia/Shanghai）");
+      body.innerHTML = list.map((s) => `
+        <div class="card"><div class="title">${escapeHtml(s.kind || "")} · ${escapeHtml(s.title || "")} ${badge((s.evidence||{}).verification_status)}</div>
+          <div class="meta">${s.start_at ? shTime(s.start_at) : ""}${s.end_at ? " ~ " + shTime(s.end_at) : ""}</div>
+        </div>`).join("");
+    }
+    function renderDining(list) {
+      const body = block("dining", "餐饮（动线契合 + 忌讳排除 + 稳妥备选）");
+      body.innerHTML = list.map((d) => `
+        <div class="card"><div class="title">${escapeHtml(d.name || "")} ${d.is_fallback ? "（稳妥备选）" : ""} ${badge((d.evidence||{}).verification_status)}</div>
+          <div class="meta">${escapeHtml(d.cuisine || "")}　距动线中心 ${escapeHtml(d.distance_m ?? "?")} 米</div></div>`).join("");
+    }
+    function renderHotel(h) {
+      const body = block("hotel", "住宿区域");
+      body.innerHTML = `<div class="card"><div class="title">${escapeHtml(h.name || (h.detail||{}).name || "区域")} ${badge((h.evidence||{}).verification_status)}</div></div>`;
+    }
+    function renderWarnings(ws) {
+      if (!ws || !ws.length) return;
+      const body = block("warn", "提示 / 降级");
+      body.innerHTML = ws.map((w) => `<div class="warn">⚠ ${escapeHtml(w)}</div>`).join("");
+    }
+
+    function showInterrupt(data) {
+      const body = block("await", "① 探索版已就绪 —— 请去官方平台购票后回填（两段式中断）");
+      body.innerHTML = `
+        <div class="card pending">
+          <div class="title">等回填 · 预填清单</div>
+          <div class="meta">起售提醒：${escapeHtml(JSON.stringify(data.presale_reminders||[]))}</div>
+          <label>粘贴订单文本（车次/航班/酒店，自动识别 · 原则三 BYO Booking）</label>
+          <textarea id="bookingText" rows="2" placeholder="如：G7502次 上海虹桥到杭州东 8:00 2026-08-08" style="width:100%;padding:8px;margin:6px 0;border:1px solid #e2e8f0;border-radius:6px"></textarea>
+          <button class="btn secondary" id="importBtn">识别文本并回填</button>
+          <label>或手填酒店名称</label>
+          <input id="hotelName" value="示例酒店（人民广场）" style="width:100%;padding:8px;margin:6px 0;border:1px solid #e2e8f0;border-radius:6px" />
+          <button class="btn" id="resumeBtn">回填酒店并生成确认版</button>
+          <button class="btn secondary" id="skipBtn">跳过（无回填）</button>
+        </div>`;
+      $("#importBtn").onclick = async () => {
+        if (planningActive || planFinished) return;
+        const raw = $("#bookingText").value.trim();
+        if (!raw) return;
+        const button = $("#importBtn");
+        button.disabled = true;
+        try {
+          const r = await fetch(`/plans/${planId}/bookings/import`, {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ kind: "manual", input_kind: "text", raw }),
+          });
+          if (!r.ok) throw new Error(`订单识别失败 ${r.status}`);
+          const d = await r.json();
+          if (d.ready_for_resume && d.booking) {
+            await doResume([d.booking]);
+          } else {
+            alert("未识别到关键字段，请补全或改用酒店回填。");
+          }
+        } catch (e) {
+          chatMsg(`<span class="warn">订单识别失败：${escapeHtml(e.message || e)}</span>`);
+        } finally {
+          button.disabled = planningActive || planFinished;
+        }
+      };
+      $("#resumeBtn").onclick = () => doResume([{
+        kind: "hotel", extracted: { name: $("#hotelName").value }, confirmed: true,
+        evidence: { source_type: "user_provided", verification_status: "confirmed_by_user", confidence: 1.0 },
+      }]);
+      $("#skipBtn").onclick = () => doResume([]);
+    }
+
+    function chatMsg(html) {
+      const log = $("#chatLog");
+      if (!log) return;
+      log.innerHTML += `<div>${html}</div>`;
+      log.scrollTop = log.scrollHeight;
+    }
+
+    // —— v4：澄清卡片（阻塞/非阻塞）与 Run 状态栏 ——
+    function renderClarification(clar) {
+      if (!clar || !clar.question) return;
+      const blocking = Boolean(clar.blocking);
+      const facts = (clar.requested_facts || [])
+        .map((f) => escapeHtml(f.description || f.name || "")).filter(Boolean).join("、");
+      const skips = (clar.assumptions_if_skipped || []).map(escapeHtml).join("、");
+      chatMsg(`<div class="clarify-card ${blocking ? "" : "nonblocking"}">
+        <div class="q">${blocking ? "❓ 需要你确认：" : "💡 可选补充："}${escapeHtml(clar.question)}</div>
+        ${clar.reason ? `<div class="note">原因：${escapeHtml(clar.reason)}</div>` : ""}
+        ${facts ? `<div class="note">需要的信息：${facts}</div>` : ""}
+        <div class="note">${blocking
+          ? "回答后我会从当前上下文继续；直接在下方输入框回复即可。"
+          : (skips ? `不回答也会继续；默认假设：${skips}。` : "不回答也会继续执行，补充后可以优化结果。")}</div>
+      </div>`);
+    }
+    let runSource = null;
+    let activeRunId = null;
+    function closeRunSource() {
+      if (runSource) { try { runSource.close(); } catch (e) {} runSource = null; }
+      activeRunId = null;
+    }
+    function hideRunStatus() {
+      const el = $("#runStatus");
+      el.style.display = "none"; el.innerHTML = "";
+    }
+    function showRunStatus(run, text) {
+      const el = $("#runStatus");
+      el.style.display = "block";
+      el.innerHTML = `<button class="cancel" id="runCancel">取消</button>
+        <span id="runPhase">⏳ ${escapeHtml(text || "任务已创建，等待执行")}</span>
+        <div class="note" id="runMeta">任务：${escapeHtml(run.goal || run.type || "")}</div>`;
+      $("#runCancel").onclick = async () => {
+        if (!activeRunId) return;
+        try { await fetch(`/agent/runs/${activeRunId}/cancel`, { method: "POST" }); } catch (e) {}
+      };
+    }
+    function updateRunStatus(d) {
+      const el = $("#runPhase");
+      if (!el) return;
+      const p = d.payload || {};
+      const progress = p.progress && p.progress.total
+        ? `（${p.progress.completed || 0}/${p.progress.total}）`
+        : (p.completed != null && p.total != null ? `（${p.completed}/${p.total}）` : "");
+      const phase = d.phase ? `[${escapeHtml(d.phase)}] ` : "";
+      const msg = d.message ? escapeHtml(d.message) : "执行中…";
+      el.innerHTML = `⏳ ${phase}${msg}${progress}`;
+      const meta = $("#runMeta");
+      if (meta && d.created_at) {
+        meta.innerHTML = `最近心跳：${escapeHtml(String(d.created_at).slice(11, 19))}`;
+      }
+    }
+    function subscribeRun(run, after) {
+      if (!run || !run.events_url) return;
+      closeRunSource();
+      activeRunId = run.id;
+      planFinished = false;
+      showRunStatus(run, run.status === "queued" ? "任务已创建，等待执行" : "任务执行中");
+      const url = run.events_url + (after ? `?after=${encodeURIComponent(after)}` : "");
+      const es = new EventSource(url);  // 断线重连自动携 Last-Event-ID 续传
+      runSource = es;
+      const handle = (e) => {
+        let d = {};
+        try { d = JSON.parse(e.data); } catch (err) { return; }
+        onRunEvent(e.type, d);
+      };
+      for (const t of ["research.progress", "run.status", "run.result", "run.error", "run.node"]) {
+        es.addEventListener(t, handle);
+      }
+      es.onerror = () => { /* 服务端持有生命周期；EventSource 会自动重连 */ };
+    }
+    function onRunEvent(type, d) {
+      if (type === "research.progress") {
+        renderProgress({ message: d.message || (d.payload || {}).message,
+                         found: (d.payload || {}).count });
+        updateRunStatus(d);
+        return;
+      }
+      if (type === "run.error") {
+        chatMsg(`<span class="warn">⚠ ${escapeHtml(d.message || "执行出错（已保留可用结果）")}</span>`);
+        updateRunStatus(d);
+        return;
+      }
+      updateRunStatus(d);
+      const p = d.payload || {};
+      if (p.final || d.final) finishRun(d);
+    }
+    async function finishRun(d) {
+      closeRunSource();
+      hideRunStatus();
+      await refreshWorkspace({ appendFinal: true });
+    }
+    async function refreshWorkspace(opts) {
+      if (!planId || !/^\d+$/.test(String(planId))) return null;
+      try {
+        const r = await fetch(`/agent/conversations/${planId}/workspace`);
+        if (!r.ok) throw new Error(`workspace ${r.status}`);
+        const state = await r.json();
+        if (state.current_plan) {
+          out.innerHTML = "";
+          renderExploreBundle(state.current_plan);
+          if (state.stage === "await_booking") {
+            showInterrupt({ explore_bundle: state.current_plan, presale_reminders: [] });
+          }
+        }
+        if (opts && opts.appendFinal) {
+          const turn = state.active_turn || {};
+          if (turn.visible_reply && ["answered", "partial", "failed", "cancelled"].includes(turn.status)) {
+            chatMsg("<b>助手：</b>" + escapeHtml(turn.visible_reply).replace(/\n/g, "<br>"));
+          }
+        }
+        for (const clar of (state.open_clarifications || [])) renderClarification(clar);
+        if (state.active_run) {
+          subscribeRun(state.active_run, state.last_event_id || 0);
+        }
+        return state;
+      } catch (e) { return null; }
+    }
+    function renderProgress(d) {
+      const found = d.found ? `（已找到 ${escapeHtml(d.found)} 条）` : "";
+      chatMsg(`<span class="note">🔎 ${escapeHtml(d.message || "")}${found}</span>`);
+    }
+    function chatSummaryFromExplore(d) {
+      const b = d.explore_bundle || {};
+      if (b.assistant_response) {
+        return escapeHtml(b.assistant_response).replace(/\n/g, "<br>");
+      }
+      const acts = b.activities || [];
+      const primary = (b.cities || [])[0] || {};
+      const tp = b.transport || {};
+      const cand = (tp.candidates || [])[0] || {};
+      if (b.research_outcome === "no_better_alternatives") {
+        return `本轮未找到不重复且更贴近反馈的可信活动；已保留上一轮 ${acts.length} 项方案，`
+          + "建议放宽日期、场地或演出类型后继续搜索。";
+      }
+      if (b.research_outcome === "reranked") {
+        return `本轮未找到新的可信活动；已按你的新增偏好重新排序上一轮 ${acts.length} 项，`
+          + "并在卡片中标出可核查的匹配信号。";
+      }
+      if (b.research_outcome === "partial_unverified") {
+        const selection = b.research_selection || {};
+        return `本轮新增 ${escapeHtml(selection.selected_fresh_count || 0)} 个来源支持候选，`
+          + `保留 ${escapeHtml(selection.preserved_baseline_count || 0)} 个既有安排；`
+          + "部分语义或营业信息仍待复核，未将其冒充已确认结果。";
+      }
+      const verb = b.research_outcome === "improved" ? "已根据你的反馈更新" : "已生成";
+      const hasOpenCandidates = acts.some((a) => a.candidate_type === "open_candidate");
+      const resultLabel = hasOpenCandidates
+        ? `本轮 ${acts.length} 个匹配去处`
+        : `当周 ${acts.length} 个活动`;
+      let s = `✅ ${verb}${escapeHtml(primary.name || "")}探索版方案：${resultLabel}`;
+      if (acts.length) {
+        const names = acts.slice(0, 3).map((a) =>
+          escapeHtml(a.title) + (a.start_at ? "(" + shTime(a.start_at) + ")" : "")).join("、");
+        s += `：${names}${acts.length > 3 ? "…" : ""}`;
+      }
+      if (cand.recommended_mode) {
+        s += `；${escapeHtml(tp.origin || "")}→${escapeHtml(cand.city || cand.city_code || "")} 推荐${escapeHtml(cand.recommended_mode)}`;
+      }
+      return s + "。完整卡片见下方 ↓";
+    }
+
+    function renderExploreBundle(bundle) {
+      if (!bundle || typeof bundle !== "object") return;
+      if (bundle.cities) renderCities(bundle.cities);
+      if (bundle.activities) renderActivities(bundle.activities, bundle.research_outcome);
+      if (bundle.itinerary_draft) renderItineraryDraft(bundle.itinerary_draft);
+      if (bundle.transport) renderTransport(bundle.transport);
+      if (bundle.warnings) renderWarnings(bundle.warnings);
+    }
+
+    function onEvent(ev) {
+      const d = ev.data || {};
+      if (ev.event === "progress") { renderProgress(d); return; }
+      if (ev.event === "interrupt") {
+        planFinished = false;
+        const bundle = d.explore_bundle || {};
+        renderExploreBundle(bundle);
+        showInterrupt(d);
+        setPlanningActive(planningActive);
+        chatMsg("<b>助手：</b>" + chatSummaryFromExplore(d));
+        try { out.scrollIntoView({ behavior: "smooth", block: "start" }); } catch (e) {}
+        return;
+      }
+      if (ev.event === "error") {
+        autoPlanned = false;
+        renderWarnings(["错误：" + (d.message || "")]);
+        chatMsg(`<span class="warn">生成出错：${escapeHtml(d.message || "")}</span>`);
+        return;
+      }
+      if (d.candidate_cities) renderCities(d.candidate_cities);
+      if (Object.prototype.hasOwnProperty.call(d, "activities")) renderActivities(d.activities || []);
+      if (d.transport_options) renderTransport(d.transport_options);
+      if (d.hotel_area) renderHotel(d.hotel_area);
+      if (d.dining) renderDining(d.dining);
+      if (d.timeline) renderTimeline(d.timeline);
+      if (d.warnings) renderWarnings(d.warnings);
+      if (ev.event === "done" && d.bundle) {
+        planFinished = true;
+        setPlanningActive(false);
+        block("finish", "② 确认版行程已生成 ✅").innerHTML =
+          `<div class="card">共 ${(d.bundle.activities||[]).length} 项活动，${(d.bundle.timeline||[]).length} 个时间线槽位。所有字段均带证据状态。</div>`;
+        chatMsg("<b>助手：</b>✅ 确认版行程已生成，详情见下方 ↓");
+      }
+    }
+
+    // 基于 fetch 的 SSE 解析（GET 与 POST 通用）
+    async function fetchSSE(url, options) {
+      const resp = await fetch(url, options);
+      if (!resp.ok) {
+        const detail = await resp.text();
+        throw new Error(`请求失败 ${resp.status}: ${detail.slice(0, 300)}`);
+      }
+      if (!resp.body) throw new Error("服务器未返回事件流");
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = "";
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const parts = buf.split(/\r?\n\r?\n/);
+        buf = parts.pop();
+        for (const chunk of parts) {
+          let event = "message", data = "";
+          for (const line of chunk.split(/\r?\n/)) {
+            if (line.startsWith("event:")) event = line.slice(6).trim();
+            else if (line.startsWith("data:")) data += line.slice(5).trim();
+          }
+          if (data) { try { onEvent({ event, data: JSON.parse(data) }); } catch (e) { console.error("onEvent 渲染异常", e); } }
+        }
+      }
+    }
+
+    async function doResume(bookings) {
+      if (planningActive || planFinished) return;
+      setPlanningActive(true);
+      try {
+        planFinished = false;
+        await fetchSSE(`/plans/${planId}/resume`, {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ bookings }),
+        });
+      } catch (e) {
+        chatMsg(`<span class="warn">回填失败：${escapeHtml(e.message || e)}</span>`);
+      } finally {
+        setPlanningActive(false);
+      }
+    }
+
+    $("#go").onclick = async () => {
+      if (planningActive) return;
+      out.innerHTML = "";
+      planFinished = false;
+      setPlanningActive(true);
+      try {
+        const requirement = $("#requirements").value.trim();
+        const researchGoal = $("#query").value.trim() || requirement;
+        const dietary = $("#dietary").value.split(/[,，]/).map((s) => s.trim()).filter(Boolean);
+        const constraints = {
+          experience_requirements: requirement ? [requirement] : [],
+          research_goal: researchGoal,
+          acceptance_criteria: requirement ? [requirement] : [],
+          query: researchGoal,
+          dietary,
+          target_city_code: $("#city").value,
+        };
+        const r = await fetch("/plans", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ constraints }),
+        });
+        if (!r.ok) throw new Error(`创建方案失败 ${r.status}`);
+        rememberPlan((await r.json()).plan_id);
+        autoPlanned = true;
+        await fetchSSE(`/plans/${planId}/stream`, { method: "GET" });
+      } catch (e) {
+        autoPlanned = false;
+        chatMsg(`<span class="warn">规划失败：${escapeHtml(e.message || e)}</span>`);
+      } finally {
+        setPlanningActive(false);
+      }
+    };
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+    }
+    $("#chatSend").onclick = async () => {
+      if (submitting) return;
+      const msg = $("#chatInput").value.trim();
+      if (!msg) return;
+      $("#chatLog").innerHTML += `<div><b>你：</b>${escapeHtml(msg)}</div>`;
+      $("#chatInput").value = "";
+      const pid = planId || "new";
+      setSubmitting(true);
+      try {
+        // v4：单一 Turn 端点 + 幂等键；不再由前端判断是否/如何启动研究。
+        const key = (window.crypto && crypto.randomUUID)
+          ? crypto.randomUUID()
+          : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+        const r = await fetch(`/agent/conversations/${pid}/turns`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Idempotency-Key": key },
+          body: JSON.stringify({ message: msg }),
+        });
+        if (!r.ok) {
+          const detail = await r.text();
+          throw new Error(`对话失败 ${r.status}: ${detail.slice(0, 200)}`);
+        }
+        const d = await r.json();
+        if (d.plan_id && /^\d+$/.test(String(d.plan_id))) rememberPlan(d.plan_id);
+        const reply = (d.assistant_message || {}).content || d.reply || "（暂无回复）";
+        chatMsg("<b>助手：</b>" + escapeHtml(reply).replace(/\n/g, "<br>"));
+        if (d.clarification) renderClarification(d.clarification);
+        if (d.error && d.error.message) {
+          chatMsg(`<span class="warn">⚠ ${escapeHtml(d.error.message)} ${escapeHtml(d.error.recovery || "")}</span>`);
+        }
+        if (d.run) {
+          planFinished = false;
+          out.innerHTML = "";
+          subscribeRun(d.run, 0);
+        }
+      } catch (e) {
+        $("#chatLog").innerHTML += `<div class="warn">（对话暂不可用：${escapeHtml(e.message || e)}）</div>`;
+      } finally {
+        setSubmitting(false);
+      }
+      $("#chatLog").scrollTop = $("#chatLog").scrollHeight;
+    };
+    $("#chatInput").addEventListener("keydown", e => {
+      if (e.key === "Enter" && !submitting) $("#chatSend").click();
+    });
+
+    $("#newChat").onclick = () => {
+      if (submitting) return;
+      closeRunSource();
+      hideRunStatus();
+      rememberPlan(null);
+      autoPlanned = false;
+      planFinished = false;
+      out.innerHTML = "";
+      $("#chatLog").innerHTML =
+        "<div><b>助手：</b>你好，我是你的旅行助理。告诉我想去哪、和谁、什么时候，或者只说一个模糊想法也可以。</div>";
+      $("#chatInput").focus();
+    };
+
+    async function restoreAgentSession() {
+      if (!planId || !/^\d+$/.test(String(planId))) {
+        $("#newChat").click();
+        return;
+      }
+      try {
+        // v4 §11.3：恢复完整工作区——对话、运行中任务、待澄清问题、当前方案。
+        const response = await fetch(`/agent/conversations/${planId}/workspace`);
+        if (!response.ok) throw new Error(`恢复会话失败 ${response.status}`);
+        const state = await response.json();
+        const turns = Array.isArray(state.conversation) ? state.conversation : [];
+        $("#chatLog").innerHTML = turns.map((turn) => {
+          const speaker = turn.role === "user" ? "你" : "助手";
+          const content = escapeHtml(turn.content || "").replace(/\n/g, "<br>");
+          return `<div><b>${speaker}：</b>${content}</div>`;
+        }).join("");
+        if (!turns.length) {
+          $("#chatLog").innerHTML =
+            "<div><b>助手：</b>我们继续规划这次旅行吧。你现在最想先调整哪一部分？</div>";
+        }
+        if (state.current_plan) {
+          renderExploreBundle(state.current_plan);
+          if (state.stage === "await_booking") {
+            showInterrupt({ explore_bundle: state.current_plan, presale_reminders: [] });
+          }
+        }
+        for (const clar of (state.open_clarifications || [])) renderClarification(clar);
+        if (state.active_run) {
+          chatMsg(`<span class="note">⏳ 上次的任务仍在执行，已为你继续订阅进度。</span>`);
+          subscribeRun(state.active_run, state.last_event_id || 0);
+        }
+        autoPlanned = Boolean(state.current_plan);
+        planFinished = state.stage === "confirm";
+        $("#chatLog").scrollTop = $("#chatLog").scrollHeight;
+      } catch (e) {
+        rememberPlan(null);
+        $("#chatLog").innerHTML =
+          `<div class="warn">上次会话无法恢复，已开始新对话：${escapeHtml(e.message || e)}</div>`;
+      }
+    }
+
+    restoreAgentSession();
+  </script>
+</body>
+</html>

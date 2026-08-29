@@ -1,0 +1,317 @@
+{
+ "base": "http://127.0.0.1:8000",
+ "passed": 26,
+ "total": 31,
+ "cases": [
+  {
+   "id": "A1",
+   "clause": "工程契约",
+   "name": "健康检查",
+   "given": "GET /health",
+   "expect": "200 且 ok=true",
+   "actual": "HTTP 200 {\"ok\":true}",
+   "passed": true,
+   "secs": 0.0
+  },
+  {
+   "id": "A2",
+   "clause": "工程契约",
+   "name": "非法 JSON 返回 422",
+   "given": "POST /plans body='not json'",
+   "expect": "422 参数校验错误",
+   "actual": "HTTP 422",
+   "passed": true,
+   "secs": 0.0
+  },
+  {
+   "id": "A3",
+   "clause": "工程契约/P2",
+   "name": "不存在的计划返回 404",
+   "given": "GET /plans/999999/state",
+   "expect": "404",
+   "actual": "HTTP 404",
+   "passed": true,
+   "secs": 0.0
+  },
+  {
+   "id": "B1",
+   "clause": "PRD §04 两段式",
+   "name": "探索流以 interrupt 暂停等回填",
+   "given": "上海同城+完整约束",
+   "expect": "≥4 个节点输出后以 interrupt 中断",
+   "actual": "事件序列 ['node_output', 'node_output', 'node_output', 'node_output', 'interrupt']",
+   "passed": true,
+   "secs": 1.1
+  },
+  {
+   "id": "B2",
+   "clause": "PRD §04/§5.2",
+   "name": "探索版给出 3 个候选城市",
+   "given": "同上",
+   "expect": "cities ≥ 3（PRD: 3 个候选目的城市）",
+   "actual": "候选城市 3 个: ['上海', '苏州', '杭州']",
+   "passed": true,
+   "secs": 0.0
+  },
+  {
+   "id": "B3",
+   "clause": "PRD §5.3/§06",
+   "name": "活动均为可信源且带时间",
+   "given": "同上",
+   "expect": "全部活动 verification_status ∈ {官方确认,公开来源} 且有 start_at",
+   "actual": "活动 8 场；非可信源/缺时间: 无",
+   "passed": true,
+   "secs": 0.0
+  },
+  {
+   "id": "B4",
+   "clause": "PRD §06 六态",
+   "name": "探索版全字段证据状态合法",
+   "given": "同上",
+   "expect": "递归扫描所有 evidence.verification_status ∈ 六态",
+   "actual": "越界状态 0 处: []",
+   "passed": true,
+   "secs": 0.0
+  },
+  {
+   "id": "B6",
+   "clause": "PRD §04 + v2-P0-2",
+   "name": "回填后一次走出确认版（不死循环）",
+   "given": "同城+latest_return，回填酒店",
+   "expect": "出现 done 且不再回到 interrupt",
+   "actual": "事件序列 ['node_output', 'node_output', 'node_output', 'node_output', 'node_output', 'node_output', 'done']",
+   "passed": true,
+   "secs": 0.1
+  },
+  {
+   "id": "B7",
+   "clause": "PRD §06/§5.12",
+   "name": "时间线完整且无倒序时间段",
+   "given": "确认版 bundle",
+   "expect": "≥3 槽位；所有段 end>start；validation.ok=true",
+   "actual": "槽位 9；倒序时间段 无；validation.ok=True",
+   "passed": true,
+   "secs": 0.0
+  },
+  {
+   "id": "B8",
+   "clause": "PRD §11 诚实 KPI",
+   "name": "confirmed_by_user 只能来自 user_provided",
+   "given": "确认版 bundle",
+   "expect": "递归扫描：未确认误展为已确认 = 0",
+   "actual": "违规 0 处: []",
+   "passed": true,
+   "secs": 0.0
+  },
+  {
+   "id": "B9",
+   "clause": "PRD §5.7",
+   "name": "餐饮恒有稳妥备选",
+   "given": "确认版 bundle",
+   "expect": "dining ≥1 且至少 1 家 is_fallback",
+   "actual": "餐饮 3 家，稳妥备选 1 家",
+   "passed": true,
+   "secs": 0.0
+  },
+  {
+   "id": "B10",
+   "clause": "PRD §08 + v2-P1-4",
+   "name": "ICS 导出且时区正确",
+   "given": "GET calendar.ics",
+   "expect": "200；VEVENT 带 TZID=Asia/Shanghai 本地时间，不错标 UTC",
+   "actual": "HTTP 200；含上海时区=True；UTC错标=False",
+   "passed": true,
+   "secs": 0.0
+  },
+  {
+   "id": "C1",
+   "clause": "PRD §5.4 + v2-P0-1",
+   "name": "上海出发跨城不判同城",
+   "given": "上海→南京",
+   "expect": "recommended_mode ≠ local",
+   "actual": "mode=compare（v2 曾恒 local）",
+   "passed": true,
+   "secs": 0.7
+  },
+  {
+   "id": "C2",
+   "clause": "PRD §5.5",
+   "name": "门到门双模式有真实估算",
+   "given": "上海→南京",
+   "expect": "rail/air total_min 均 > 0",
+   "actual": "rail=150min air=210min（v2 曾全 0）",
+   "passed": true,
+   "secs": 0.0
+  },
+  {
+   "id": "C3",
+   "clause": "PRD §5.5 门到门逻辑",
+   "name": "长途门到门飞机快于高铁",
+   "given": "上海→北京(~1200km)",
+   "expect": "0 < air < rail",
+   "actual": "1200km：air=265min < rail=390min（门到门飞机应更快）",
+   "passed": true,
+   "secs": 0.5
+  },
+  {
+   "id": "C4",
+   "clause": "PRD §5.4-C/E",
+   "name": "回填预填清单带发到站",
+   "given": "上海→南京 interrupt",
+   "expect": "prefill.rail = {from:上海, to:南京}",
+   "actual": "prefill={\"rail\": {\"from\": \"上海\", \"to\": \"南京\"}, \"flight\": {\"from\": \"上海\", \"to\": \"南京\"}}",
+   "passed": true,
+   "secs": 0.0
+  },
+  {
+   "id": "B5",
+   "clause": "PRD §5.4 禁编",
+   "name": "跨城交通策略不含票价/余票数字",
+   "given": "上海→南京 探索版",
+   "expect": "无 price/fare 字段，且有'以官方平台为准'声明",
+   "actual": "含价格键=False；同城=False；含'以官方为准'声明=True",
+   "passed": true,
+   "secs": 0.0
+  },
+  {
+   "id": "D1",
+   "clause": "PRD 原则三",
+   "name": "粘贴订单文本自动结构化",
+   "given": "D952 次新格式文本",
+   "expect": "抽出车次/发到站",
+   "actual": "HTTP 200；抽取={\"train_no\": \"D952\", \"date\": \"7月24日\", \"dep_time\": \"18:44\", \"from_station\": \"上海虹桥\", \"to_station\": \"南京南\"}",
+   "passed": true,
+   "secs": 11.6
+  },
+  {
+   "id": "D2",
+   "clause": "PRD 原则三/§11",
+   "name": "机器抽取初稿不得直接标 confirmed_by_user",
+   "given": "仅粘贴文本、无人工确认动作",
+   "expect": "初稿状态 ≠ confirmed_by_user（须经用户确认）",
+   "actual": "状态=confirmed_by_user（用户未确认却被标'用户已确认'）",
+   "passed": false,
+   "secs": 10.1
+  },
+  {
+   "id": "E1",
+   "clause": "DD-15",
+   "name": "一句话约束被抽取并回复人话",
+   "given": "苏州/南京/吃鸭子/博物院/八百",
+   "expect": "intent=provide_constraints；patch 含苏州；reply 非空调试文本",
+   "actual": "intent=provide_constraints patch={\"origins\": [\"苏州\"], \"weekend_hint\": \"this\", \"interests\": [\"吃鸭子\", \"逛博物院\"], \"budget_band\": {\"max\": 2400}} reply=已记下：从苏州出发；预算≤2400；想玩吃鸭子/逛博物院。计划哪个周末出行？",
+   "passed": true,
+   "secs": 28.9
+  },
+  {
+   "id": "E2",
+   "clause": "DD-15 语义",
+   "name": "'目的地换X'不得改出发地",
+   "given": "目的地换成无锡吧",
+   "expect": "patch 改目的地字段，不得写 origins",
+   "actual": "patch={}（'去无锡'被当成'从无锡出发'即错）",
+   "passed": false,
+   "secs": 11.6
+  },
+  {
+   "id": "E3",
+   "clause": "DD-15 意图",
+   "name": "'订好了'触发回填意图",
+   "given": "房间我订好了…",
+   "expect": "intent=confirm_booking",
+   "actual": "intent=confirm_booking（回填被当闲聊即丢数据）",
+   "passed": true,
+   "secs": 18.8
+  },
+  {
+   "id": "E4",
+   "clause": "DD-15/§5.3",
+   "name": "问答命中库内已有活动",
+   "given": "莫奈那个展在哪儿办？",
+   "expect": "reply 提及'中华艺术宫'（库内确有此展）",
+   "actual": "reply=库内暂无「莫奈那个展在哪儿办」的活动记录。你可以把官方页面链接发我，我核实后汇入计划（证据优先）。（库内有该展却答不出=检索未命中）",
+   "passed": false,
+   "secs": 3.8
+  },
+  {
+   "id": "E5",
+   "clause": "DD-15 韧性",
+   "name": "无意义输入不崩溃且有兜底意图",
+   "given": "zxcvbnm",
+   "expect": "200 且意图合法",
+   "actual": "HTTP 200 intent=chitchat",
+   "passed": true,
+   "secs": 10.4
+  },
+  {
+   "id": "F1",
+   "clause": "PRD §5.1",
+   "name": "邀请链接生成且同伴可区分",
+   "given": "连发 2 个邀请",
+   "expect": "token 不同、匿名标签不同",
+   "actual": "token 各异=True；标签 '同伴1'/'同伴1'（同名则无法区分同伴）",
+   "passed": false,
+   "secs": 0.0
+  },
+  {
+   "id": "F2",
+   "clause": "PRD §5.1 聚合语义",
+   "name": "聚合=出发取max/返程取min/预算交集/兴趣并集",
+   "given": "杭州(16:00-23:00,300-1200,展览,葱,可飞) + 南京(19:30-20:00,600-2000,美食,蒜,不飞)",
+   "expect": "19:30/20:00/[600,1200]/不飞/2人/{展览,美食}/{葱,蒜}",
+   "actual": "{\"earliest_depart\": \"2026-07-24T11:30:00+00:00\", \"latest_return\": \"2026-07-26T12:00:00+00:00\", \"budget\": [600, 1200], \"flight\": false, \"size\": 2, \"interests\": \"{'展览', '美食'}\", \"dietary\": \"{'葱', '蒜'}\"}",
+   "passed": true,
+   "secs": 0.1
+  },
+  {
+   "id": "F3",
+   "clause": "PRD §5.1 隐私",
+   "name": "聚合视图不暴露个体预算/出发地",
+   "given": "GET party/aggregate",
+   "expect": "不含成员个体预算极值与城市名",
+   "actual": "泄漏项 无",
+   "passed": true,
+   "secs": 0.0
+  },
+  {
+   "id": "G1",
+   "clause": "PRD §09 韧性",
+   "name": "无数据城市：给官方源清单而非编造活动",
+   "given": "上海→天津(库内 0 活动)",
+   "expect": "activities=[] 且附官方源/链接提示",
+   "actual": "活动空=True；官方源 0 个；提示=['未提供周末日期，按即将到来的周末处理', '活动检索为空：可粘贴官方活动链接']",
+   "passed": true,
+   "secs": 24.6
+  },
+  {
+   "id": "G2",
+   "clause": "PRD §09 韧性",
+   "name": "空约束也能出探索版（默认兜底）",
+   "given": "POST /plans {} 直接 stream",
+   "expect": "不 5xx，产出 interrupt",
+   "actual": "事件序列 ['node_output', 'node_output', 'node_output', 'node_output', 'interrupt']",
+   "passed": true,
+   "secs": 18.9
+  },
+  {
+   "id": "G3",
+   "clause": "PRD §11 可信度",
+   "name": "入库活动时间段合法（无倒序）",
+   "given": "探索版活动全量",
+   "expect": "全部 end_at > start_at",
+   "actual": "倒序/过期活动 0 场: []",
+   "passed": true,
+   "secs": 0.0
+  },
+  {
+   "id": "G4",
+   "clause": "PRD §06",
+   "name": "Bundle 含待确认清单与住宿区域",
+   "given": "确认版 bundle keys",
+   "expect": "含 待确认清单 + 住宿区域",
+   "actual": "探索/确认版缺字段: ['todo_checklist']（PRD §06 要求）",
+   "passed": false,
+   "secs": 0.0
+  }
+ ]
+}

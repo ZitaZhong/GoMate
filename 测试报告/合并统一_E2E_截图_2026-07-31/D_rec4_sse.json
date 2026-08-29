@@ -1,0 +1,46 @@
+event: room_state
+data: {"status": "RECOMMENDING"}
+
+event: node_output
+data: {"common_time_window": {"start": "10:30", "end": "20:30", "available_hours": 10.0, "feasible": true, "suggestions": []}, "warnings": []}
+
+event: node_output
+data: {"theme": "拍照"}
+
+event: progress
+data: {"phase": "plan", "message": "正在为「上海 · 拍照」检索市内活动…", "found": 0}
+
+event: progress
+data: {"phase": "search", "message": "启动市内实时深度研究（scope=local）…", "found": 0}
+
+event: progress
+data: {"phase": "plan", "message": "正在规划研究方向…", "found": 0}
+
+: ping - 2026-08-06 06:07:48.987784+00:00
+
+event: progress
+data: {"phase": "plan", "message": "深度研究中（预计约4分钟，2个研究任务并行执行）", "found": 0}
+
+: ping - 2026-08-06 06:08:04.010864+00:00
+
+event: progress
+data: {"phase": "search", "message": "仍在检索外部来源… 已完成 0/2 子主题（第1轮）", "found": 0}
+
+: ping - 2026-08-06 06:08:19.026550+00:00
+
+event: progress
+data: {"phase": "search", "message": "仍在检索外部来源… 已完成 0/2 子主题（第1轮）", "found": 0}
+
+: ping - 2026-08-06 06:08:34.000187+00:00
+
+event: progress
+data: {"phase": "search", "message": "仍在检索外部来源… 已完成 0/2 子主题（第1轮）", "found": 0}
+
+: ping - 2026-08-06 06:08:49.023504+00:00
+
+event: progress
+data: {"phase": "search", "message": "仍在检索外部来源… 已完成 0/2 子主题（第1轮）", "found": 0}
+
+event: progress
+data: {"phase": "search", "message": "检索完成 1/2 子主题（第1轮）", "found": 0}
+

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <style> body { font-family: -apple-system, "Microsoft YaHei", sans-serif; padding: 16px; } .field { margin: 8px 0; } input { width: 320px; padding: 6px; } </style>
+</head>
+<body>
+  <h2>回填助手 设置</h2>
+  <div class="field">BFF 地址：<input id="bff" placeholder="http://127.0.0.1:8000" /></div>
+  <div class="field">关联令牌（可选）：<input id="token" placeholder="plan 关联 token" /></div>
+  <button id="save">保存</button>
+  <div id="ok" style="color:#1f9d55;margin-top:8px;"></div>
+  <script>
+    chrome.storage.local.get(["bff", "token"]).then((c) => {
+      document.getElementById("bff").value = c.bff || "http://127.0.0.1:8000";
+      document.getElementById("token").value = c.token || "";
+    });
+    document.getElementById("save").onclick = () => {
+      chrome.storage.local.set({
+        bff: document.getElementById("bff").value || "http://127.0.0.1:8000",
+        token: document.getElementById("token").value,
+      });
+      document.getElementById("ok").textContent = "已保存";
+    };
+  </script>
+</body>
+</html>

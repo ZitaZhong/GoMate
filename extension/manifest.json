@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "周末去哪儿 回填助手",
+  "version": "0.1.0",
+  "description": "从 12306/航司/OTA 页面选区回填交通住宿到「周末去哪儿」。仅本地解析 + 人工确认，不自动登录/不模拟购票。",
+  "permissions": ["activeTab", "storage", "scripting"],
+  "host_permissions": [
+    "https://www.12306.cn/*",
+    "https://*.airchina.com.cn/*",
+    "https://*.ceair.com/*",
+    "https://*.csair.com/*",
+    "https://*.trip.com/*"
+  ],
+  "action": { "default_popup": "popup.html", "default_title": "回填到周末去哪儿" },
+  "options_page": "options.html",
+  "background": { "service_worker": "background.js" },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.12306.cn/*",
+        "https://*.airchina.com.cn/*",
+        "https://*.ceair.com/*",
+        "https://*.csair.com/*",
+        "https://*.trip.com/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

@@ -1,0 +1,261 @@
+[
+ {
+  "场景": "C1 明确需求新措辞",
+  "用户": "俩人大后天从广州出发，玩两天，想吃好的逛逛博物馆，一个人预算一千左右",
+  "HTTP": 200,
+  "返回": {
+   "plan_id": "153",
+   "intent": "provide_constraints",
+   "action": "invoke",
+   "reply": "已记下：从广州出发；3人；预算≤1000；想玩博物馆。计划哪个周末出行？",
+   "constraints_patch": {
+    "origins": [
+     "广州"
+    ],
+    "interests": [
+     "博物馆"
+    ],
+    "budget_band": {
+     "max": 1000
+    }
+   },
+   "booking": null,
+   "pending_clarify": [
+    {
+     "slot": "weekend",
+     "q": "计划哪个周末出行？"
+    }
+   ],
+   "constraints": {
+    "query": "周末 周边 逛逛",
+    "dietary": [],
+    "origins": [
+     "广州"
+    ],
+    "interests": [
+     "博物馆"
+    ],
+    "party_size": 3,
+    "budget_band": {
+     "max": 1000
+    },
+    "accept_flight": false,
+    "latest_return": "2026-07-26T22:00:00+08:00",
+    "earliest_depart": "2026-07-24T18:00:00+08:00"
+   }
+  }
+ },
+ {
+  "场景": "C2 模糊需求新措辞",
+  "用户": "周末不知道去哪儿玩好，给点灵感",
+  "HTTP": 200,
+  "返回": {
+   "plan_id": "153",
+   "intent": "ask_info",
+   "action": "answer",
+   "reply": "库内暂无「周末不知道去哪儿玩好给点灵感」的活动记录。你可以把官方页面链接发我，我核实后汇入计划（证据优先）。",
+   "constraints_patch": null,
+   "booking": null,
+   "pending_clarify": [],
+   "constraints": {
+    "query": "周末 周边 逛逛",
+    "dietary": [],
+    "origins": [
+     "广州"
+    ],
+    "interests": [
+     "博物馆"
+    ],
+    "party_size": 3,
+    "budget_band": {
+     "max": 1000
+    },
+    "accept_flight": false,
+    "latest_return": "2026-07-26T22:00:00+08:00",
+    "earliest_depart": "2026-07-24T18:00:00+08:00"
+   }
+  }
+ },
+ {
+  "场景": "C3 换目的地",
+  "用户": "目的地换成西安吧",
+  "HTTP": 200,
+  "返回": {
+   "plan_id": "153",
+   "intent": "provide_constraints",
+   "action": "invoke",
+   "reply": "已记下：从西安出发；3人；预算≤1000；想玩博物馆。计划哪个周末出行？",
+   "constraints_patch": {
+    "origins": [
+     "西安"
+    ]
+   },
+   "booking": null,
+   "pending_clarify": [
+    {
+     "slot": "weekend",
+     "q": "计划哪个周末出行？"
+    }
+   ],
+   "constraints": {
+    "query": "周末 周边 逛逛",
+    "dietary": [],
+    "origins": [
+     "西安"
+    ],
+    "interests": [
+     "博物馆"
+    ],
+    "party_size": 3,
+    "budget_band": {
+     "max": 1000
+    },
+    "accept_flight": false,
+    "latest_return": "2026-07-26T22:00:00+08:00",
+    "earliest_depart": "2026-07-24T18:00:00+08:00"
+   }
+  }
+ },
+ {
+  "场景": "C4 问事实",
+  "用户": "莫奈那个展在哪儿办？门票多少？",
+  "HTTP": 200,
+  "返回": {
+   "plan_id": "153",
+   "intent": "ask_info",
+   "action": "answer",
+   "reply": "库内暂无「莫奈那个展在哪儿办门票多少」的活动记录。你可以把官方页面链接发我，我核实后汇入计划（证据优先）。",
+   "constraints_patch": null,
+   "booking": null,
+   "pending_clarify": [],
+   "constraints": {
+    "query": "周末 周边 逛逛",
+    "dietary": [],
+    "origins": [
+     "西安"
+    ],
+    "interests": [
+     "博物馆"
+    ],
+    "party_size": 3,
+    "budget_band": {
+     "max": 1000
+    },
+    "accept_flight": false,
+    "latest_return": "2026-07-26T22:00:00+08:00",
+    "earliest_depart": "2026-07-24T18:00:00+08:00"
+   }
+  }
+ },
+ {
+  "场景": "C5 告知酒店已订",
+  "用户": "酒店我订好了，全季上海人民广场店，这周五入住",
+  "HTTP": 200,
+  "返回": {
+   "plan_id": "153",
+   "intent": "chitchat",
+   "action": "answer",
+   "reply": "你好～告诉我这个周末想从哪出发、几个人、预算和兴趣，我帮你找当周活动和交通方案。",
+   "constraints_patch": null,
+   "booking": null,
+   "pending_clarify": [],
+   "constraints": {
+    "query": "周末 周边 逛逛",
+    "dietary": [],
+    "origins": [
+     "西安"
+    ],
+    "interests": [
+     "博物馆"
+    ],
+    "party_size": 3,
+    "budget_band": {
+     "max": 1000
+    },
+    "accept_flight": false,
+    "latest_return": "2026-07-26T22:00:00+08:00",
+    "earliest_depart": "2026-07-24T18:00:00+08:00"
+   }
+  }
+ },
+ {
+  "场景": "C6 天气变化",
+  "用户": "周日好像要下暴雨，行程要不要调整？",
+  "HTTP": 200,
+  "返回": {
+   "plan_id": "153",
+   "intent": "provide_constraints",
+   "action": "invoke",
+   "reply": "已记下：从西安出发；3人；预算≤1000；想玩博物馆。计划哪个周末出行？",
+   "constraints_patch": {
+    "weekend_hint": "this"
+   },
+   "booking": null,
+   "pending_clarify": [
+    {
+     "slot": "weekend",
+     "q": "计划哪个周末出行？"
+    }
+   ],
+   "constraints": {
+    "query": "周末 周边 逛逛",
+    "dietary": [],
+    "origins": [
+     "西安"
+    ],
+    "interests": [
+     "博物馆"
+    ],
+    "party_size": 3,
+    "budget_band": {
+     "max": 1000
+    },
+    "accept_flight": false,
+    "latest_return": "2026-07-26T22:00:00+08:00",
+    "earliest_depart": "2026-07-24T18:00:00+08:00",
+    "weekend_hint": "this"
+   }
+  }
+ },
+ {
+  "场景": "C7 改预算",
+  "用户": "帮我把预算改成两千",
+  "HTTP": 200,
+  "返回": {
+   "plan_id": "153",
+   "intent": "provide_constraints",
+   "action": "invoke",
+   "reply": "已记下：从西安出发；3人；预算≤2000；想玩博物馆。计划哪个周末出行？",
+   "constraints_patch": {
+    "budget_band": {
+     "max": 2000
+    }
+   },
+   "booking": null,
+   "pending_clarify": [
+    {
+     "slot": "weekend",
+     "q": "计划哪个周末出行？"
+    }
+   ],
+   "constraints": {
+    "query": "周末 周边 逛逛",
+    "dietary": [],
+    "origins": [
+     "西安"
+    ],
+    "interests": [
+     "博物馆"
+    ],
+    "party_size": 3,
+    "budget_band": {
+     "max": 2000
+    },
+    "weekend_hint": "this",
+    "accept_flight": false,
+    "latest_return": "2026-07-26T22:00:00+08:00",
+    "earliest_depart": "2026-07-24T18:00:00+08:00"
+   }
+  }
+ }
+]

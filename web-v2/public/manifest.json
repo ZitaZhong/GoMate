@@ -1,0 +1,16 @@
+{
+  "name": "GoMate - 周末计划",
+  "short_name": "GoMate",
+  "description": "这个周末，别再问“去哪儿都行”。跨城出行或市内活动，AI 帮你规划。",
+  "lang": "zh-CN",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F7F7F5",
+  "theme_color": "#8FB59B",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

@@ -1,0 +1,135 @@
+[
+  {
+    "id": "R01",
+    "ref": "基础",
+    "name": "服务健康检查",
+    "result": "PASS",
+    "detail": "HTTP 200"
+  },
+  {
+    "id": "R02",
+    "ref": "DD-18 §8",
+    "name": "创建房间（COLLECTING + 邀请码）",
+    "result": "PASS",
+    "detail": "room_id=11 invite=OKwqxCDY"
+  },
+  {
+    "id": "R03",
+    "ref": "DD-18 §8",
+    "name": "邀请码查房 + 2 名成员加入（无效码 404）",
+    "result": "PASS",
+    "detail": "3 人在房（含创建者）"
+  },
+  {
+    "id": "R04",
+    "ref": "DD-18 §2.2",
+    "name": "3 人信息提交（真实坐标）+ 假 token 403",
+    "result": "PASS",
+    "detail": "3 人提交 + 假 token 403"
+  },
+  {
+    "id": "R05",
+    "ref": "DD-18 §4.1",
+    "name": "聚合摘要：共同时间窗 15:00~20:00 + 脱敏",
+    "result": "PASS",
+    "detail": "共同窗 15:00~20:00 (5.0h)"
+  },
+  {
+    "id": "R06",
+    "ref": "DD-18 §3.2",
+    "name": "非法状态跳转 409（未确认主题选活动）",
+    "result": "PASS",
+    "detail": "未确认主题就选活动 → HTTP 409"
+  },
+  {
+    "id": "R07",
+    "ref": "DD-18 §8",
+    "name": "主题投票 + 非法权重 422",
+    "result": "PASS",
+    "detail": "tally=[{'theme': '展览', 'score': 3}]"
+  },
+  {
+    "id": "R08",
+    "ref": "DD-18 §4.2",
+    "name": "转盘 2 次（一次反悔）+ 第 3 次 409 + 硬约束排除",
+    "result": "PASS",
+    "detail": "w1=市集 w2=展览 硬排除=['剧本杀']"
+  },
+  {
+    "id": "R09",
+    "ref": "DD-18 §3.2",
+    "name": "确认主题 → RECOMMENDING（重复确认 409）",
+    "result": "PASS",
+    "detail": "status=RECOMMENDING"
+  },
+  {
+    "id": "R10",
+    "ref": "DD-18 §7/§9",
+    "name": "推荐 SSE：深研(scope=local)+候选+interrupt",
+    "result": "PASS",
+    "detail": "events=['activity_candidates', 'interrupt', 'node_output', 'progress', 'room_state'] 候选=1 深研进度条数=23 首条=微讲座《新四军臂章》"
+  },
+  {
+    "id": "R11",
+    "ref": "DD-18 §3.2",
+    "name": "选定活动 → PLANNING → PUBLISHED（行程 v1）",
+    "result": "PASS",
+    "detail": "{'ok': True, 'room_id': 11, 'status': 'PUBLISHED', 'itinerary_version': 1}"
+  },
+  {
+    "id": "R12",
+    "ref": "DD-18 §4.4",
+    "name": "3 人路线 + 集合点 + 倒推出发时间",
+    "result": "PASS",
+    "detail": "路线=3 集合点=中共一大纪念馆 集合时间=2026-08-01T08:45:00+00:00"
+  },
+  {
+    "id": "R13",
+    "ref": "DD-18 §8",
+    "name": "获取当前行程（含活动节点）",
+    "result": "PASS",
+    "detail": "v1 nodes=['gathering', 'activity']"
+  },
+  {
+    "id": "R14",
+    "ref": "DD-18 §5",
+    "name": "AI 修改：推迟半小时 → adjust_time → v2",
+    "result": "PASS",
+    "detail": "识别=adjust_time 新版本=2"
+  },
+  {
+    "id": "R15",
+    "ref": "DD-18 §5.2",
+    "name": "AI 修改：换不辣餐厅 → 只动餐饮节点",
+    "result": "PASS",
+    "detail": "行程无餐饮节点 → 无变更（合理跳过）"
+  },
+  {
+    "id": "R16",
+    "ref": "DD-18 §5.3",
+    "name": "AI 修改：取消活动 → needs_confirmation（不落版）",
+    "result": "PASS",
+    "detail": "needs_confirmation=True 当前版本 v2（未被误改）"
+  },
+  {
+    "id": "R17",
+    "ref": "DD-18 §6",
+    "name": "撤销回上一版",
+    "result": "PASS",
+    "detail": "v2 → v1"
+  },
+  {
+    "id": "R18",
+    "ref": "DD-18 §10",
+    "name": "分享脱敏：无坐标/出发地/token",
+    "result": "PASS",
+    "detail": "泄露字段=无 成员=['小北', '阿黄', '老王']"
+  },
+  {
+    "id": "R19",
+    "ref": "DD-18 §10",
+    "name": "房间终态 PUBLISHED",
+    "result": "PASS",
+    "detail": "终态=PUBLISHED（8 态顺序流转完成）"
+  }
+]

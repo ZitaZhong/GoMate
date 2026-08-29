@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+/* GoMate Design System - based on GoMate PRD Section 13 */
+:root {
+  /* Base colors */
+  --bg: #F7F7F5;
+  --card: #FFFFFF;
+  --text-primary: #2F3437;
+  --text-secondary: #787774;
+  --border: #E3E2DF;
+
+  /* Accent colors */
+  --accent-green: #8FB59B;
+  --accent-yellow: #F2CD74;
+  --accent-blue: #86A7C7;
+  --accent-coral: #DF927C;
+  --accent-red: #D96C6C;
+
+  /* Evidence 6-state colors (DD-03) */
+  --ev-confirmed: #8FB59B;
+  --ev-official: #86A7C7;
+  --ev-observed: #787774;
+  --ev-estimated: #F2CD74;
+  --ev-unknown: #E3E2DF;
+  --ev-expired: #D96C6C;
+
+  /* Composed self-hosted handwriting stack (wired by next/font/local in layout.tsx) */
+  --font-handwrite-loaded: var(--font-caveat-loaded), var(--font-zcool-loaded);
+}
+
+@theme inline {
+  --color-background: var(--bg);
+  --color-foreground: var(--text-primary);
+  --color-card: var(--card);
+  --color-border: var(--border);
+  --color-primary: var(--text-primary);
+  --color-secondary: var(--text-secondary);
+  --color-accent-green: var(--accent-green);
+  --color-accent-yellow: var(--accent-yellow);
+  --color-accent-blue: var(--accent-blue);
+  --color-accent-coral: var(--accent-coral);
+  --color-accent-red: var(--accent-red);
+  --color-evidence-confirmed: var(--ev-confirmed);
+  --color-evidence-official: var(--ev-official);
+  --color-evidence-observed: var(--ev-observed);
+  --color-evidence-estimated: var(--ev-estimated);
+  --color-evidence-unknown: var(--ev-unknown);
+  --color-evidence-expired: var(--ev-expired);
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+  --font-handwrite: var(--font-handwrite-loaded), "Caveat", "ZCOOL KuaiLe", cursive;
+  --radius-card: 12px;
+  --radius-badge: 999px;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Utility: hand-drawn border style */
+.border-hand {
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-card);
+}
+
+/* Utility: triangle pointer (theme wheel, DD-19 §3.4) */
+.clip-triangle {
+  clip-path: polygon(50% 100%, 0 0, 100% 0);
+}

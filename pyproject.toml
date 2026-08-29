@@ -1,0 +1,68 @@
+[project]
+name = "wheretogo"
+version = "0.1.0"
+description = "「周末去哪儿」— 效果优先的周末出行规划（v1.1：混合检索+重排、证据优先、LangGraph 两段式编排）"
+# 锁定 3.12：langgraph/torch 等生态在 3.14 上 wheel 尚不完整；3.12 兼容性最佳
+requires-python = ">=3.11,<3.13"
+dependencies = [
+    # —— Web / BFF（DD-02 §11：REST + SSE）——
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "sse-starlette>=2.1",
+    "httpx>=0.27",
+    # —— 数据层（DD-01）——
+    "sqlalchemy>=2.0.30",
+    "alembic>=1.13",
+    "psycopg[binary]>=3.2",
+    "pgvector>=0.3.6",
+    "geoalchemy2>=0.15",
+    "redis>=5.0",
+    # —— 模型/校验（Evidence/Fact，v1.1 增补 D）——
+    "pydantic>=2.7",
+    "pydantic-settings>=2.3",
+    # —— 编排（DD-02）——
+    "langgraph>=0.2.30",
+    "langgraph-checkpoint-postgres>=2.0",
+    # —— 工具 ——
+    "numpy>=1.26",
+    "pyyaml>=6.0",
+    "tenacity>=8.4",
+    "python-dotenv>=1.0",
+    # —— DD-06 情报流水线 ——
+    "beautifulsoup4>=4.12",  # 正文清洗 html→text
+    "dateparser>=1.2",       # 中文口语时间归一（Asia/Shanghai）
+    "playwright>=1.61.0",
+]
+
+[project.optional-dependencies]
+# 真实 BGE-M3 / BGE-reranker 权重（需要时再装：uv sync --extra models）
+models = [
+    "FlagEmbedding>=1.2.10",
+    "torch>=2.2",
+]
+dev = [
+    "pytest>=8.2",
+    "pytest-asyncio>=0.23",
+    "ruff>=0.5",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/wheretogo"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint.per-file-ignores]
+# conftest 必须在 import wheretogo 之前用 env 覆盖 .env（强制离线），故导入不在顶部（见 conftest 顶注）
+"tests/conftest.py" = ["E402"]

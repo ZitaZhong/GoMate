@@ -1,0 +1,129 @@
+[
+ {
+  "场景": "S1 明确需求一轮说完",
+  "用户": "我们两个人这周五下班后从上海出发，周日晚上回来，预算人均1500，想看展览吃美食，完全不吃辣",
+  "系统返回": {
+   "plan_id": "53",
+   "intent": "provide_constraints",
+   "action": "invoke",
+   "description": "首规划：astream(inputs)",
+   "pending_clarify": [
+    {
+     "slot": "origins",
+     "q": "你们从哪里出发？"
+    },
+    {
+     "slot": "weekend",
+     "q": "计划哪个周末出行？"
+    },
+    {
+     "slot": "interests",
+     "q": "想去玩什么？（展览/演出/市集…）"
+    }
+   ]
+  }
+ },
+ {
+  "场景": "S2 模糊需求",
+  "用户": "周末想出去玩，但不知道去哪",
+  "系统返回": {
+   "plan_id": "53",
+   "intent": "provide_constraints",
+   "action": "invoke",
+   "description": "首规划：astream(inputs)",
+   "pending_clarify": [
+    {
+     "slot": "origins",
+     "q": "你们从哪里出发？"
+    },
+    {
+     "slot": "weekend",
+     "q": "计划哪个周末出行？"
+    },
+    {
+     "slot": "interests",
+     "q": "想去玩什么？（展览/演出/市集…）"
+    }
+   ]
+  }
+ },
+ {
+  "场景": "S3 修改目的地",
+  "用户": "把目的地改成杭州",
+  "系统返回": {
+   "plan_id": "53",
+   "intent": "refine_field",
+   "action": "update_state",
+   "description": "局部细化：update_state(as_node=...)",
+   "pending_clarify": []
+  }
+ },
+ {
+  "场景": "S4 事实问答",
+  "用户": "上海博物馆那个古埃及展门票多少钱？",
+  "系统返回": {
+   "plan_id": "53",
+   "intent": "ask_info",
+   "action": "answer",
+   "description": "纯问答，不驱动图",
+   "pending_clarify": []
+  }
+ },
+ {
+  "场景": "S5 告知已购票",
+  "用户": "我买好票了，G7502次周六早上8点上海虹桥到杭州东，二等座73元",
+  "系统返回": {
+   "plan_id": "53",
+   "intent": "confirm_booking",
+   "action": "resume",
+   "description": "回填确认：Command(resume=...)",
+   "pending_clarify": []
+  }
+ },
+ {
+  "场景": "S6 闲聊",
+  "用户": "你好呀",
+  "系统返回": {
+   "plan_id": "53",
+   "intent": "chitchat",
+   "action": "answer",
+   "description": "闲聊，不驱动图",
+   "pending_clarify": []
+  }
+ },
+ {
+  "场景": "S7 无意义输入",
+  "用户": "asdfgh",
+  "系统返回": {
+   "plan_id": "53",
+   "intent": "provide_constraints",
+   "action": "invoke",
+   "description": "首规划：astream(inputs)",
+   "pending_clarify": [
+    {
+     "slot": "origins",
+     "q": "你们从哪里出发？"
+    },
+    {
+     "slot": "weekend",
+     "q": "计划哪个周末出行？"
+    },
+    {
+     "slot": "interests",
+     "q": "想去玩什么？（展览/演出/市集…）"
+    }
+   ]
+  }
+ },
+ {
+  "场景": "S8 约束已全时(memory_ctx)",
+  "用户": "我们就想看展览",
+  "系统返回": {
+   "plan_id": "53",
+   "intent": "provide_constraints",
+   "action": "invoke",
+   "description": "首规划：astream(inputs)",
+   "pending_clarify": []
+  }
+ }
+]
